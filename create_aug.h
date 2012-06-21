@@ -11,7 +11,11 @@ OSStatus	CreateAUGraph (AUGraph &outGraph, AudioUnit &outSynth) {
 	//create the nodes of the graph
 	AUNode synthNode, outNode;
 	
+#if (MACOSX_VERSION >= 1060)
 	AudioComponentDescription cd;
+#else
+	ComponentDescription cd;
+#endif
 	cd.componentManufacturer = kAudioUnitManufacturer_Apple;
 	cd.componentFlags = 0;
 	cd.componentFlagsMask = 0;

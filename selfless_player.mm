@@ -136,7 +136,11 @@ int main(int argc, char *argv[]) {
     require_noerr( result = MIDIClientCreate(CFSTR("MIDI client"), NULL, NULL, &midiClient), home);
     require_noerr( result = MIDIInputPortCreate(midiClient, CFSTR("Input"), midiInputCallback, NULL, &inputPort), home);
     endPoint = find_midi_source_by_device_name_entity_idx_src_idx( device_name, 0, 0 );
+#if (MACOSX_VERSION >= 1060)
     require_noerr( result = MIDIPortConnectSource(inputPort, endPoint, NULL), home);
+#else
+    require_noerr( result = MIDIPortConnectSource((OpaqueMIDIPort*)inputPort, (OpaqueMIDIEndpoint*)endPoint, NULL), home);
+#endif
 
         // Setting up sound generation
     require_noerr (result = CreateAUGraph (graph, synthUnit), home);
