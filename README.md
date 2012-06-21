@@ -22,3 +22,6 @@ The MIDI instrument to be played can also be set from the command line.
 
 Enjoy!
 
+PS: It should now compile both on Snow Leopard (Mac OSX 10.6) and Leopard (Mac OSX 10.5).
+    If it complains please make sure you have commented/uncommented the right line in Makefile.
+
