@@ -30,7 +30,7 @@ Sonome layout in landscape orientation (default):
 -------------------------------------------------
 
 <PRE>
-                                          //<-----imaginary split between two banks
+                                          /&lt;-----imaginary split between two banks
   +---+       +---+       +---+       +---+
  /     \     /     \     /     \     /    \\
 +   A   +---+   hb  +---+   H   +---+   C   +---+       +---+       +---+       +---+
