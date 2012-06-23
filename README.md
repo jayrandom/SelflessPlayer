@@ -4,9 +4,12 @@ SelflessPlayer
 SelflessPlayer is a standalone command-line program for MacOSX that allows you to play
 a variety of isomorphic hexagonal keyboard layouts on AXIS-49 hexagonal MIDI keyboard.
 
-When you turn the keyboard into so-called "selfless" mode every key starts to produce its own distinct MIDI-signal
-(as opposed to the default layout where the two "banks" of notes are indistinguishable by external hardware/software).
-This allows us to get much more out of this toy:
+When you turn the keyboard into so-called "selfless" mode (press "Octave transposition down" key while plugging the device in)
+every key starts to produce its own distinct MIDI-signal, as opposed to the "native" mode
+(press "Octave transposition up" key while plugging the device in)
+where the two "banks" of notes are indistinguishable by external hardware/software.
+
+Selfless mode allows us to get much more out of this toy:
 
 1. You can stay with "Sonome" keyboard layout but transpose one bank a few octaves apart from the other one -
     which extends the overall range and it makes more sense to play with two hands (sacrificing the "isomorphic" property).
