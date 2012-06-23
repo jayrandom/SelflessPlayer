@@ -24,8 +24,7 @@ AudioUnit synthUnit;    // have to make it global and reachable by the callback 
 unsigned char mapping[99];
 int sensitivity_correction              = 40;
 int transpose_semitones                 = 0;
-int left_bank_offset_octaves            = 0;
-int right_bank_offset_octaves           = 0;
+int interbank_offset_octaves            = 0;
 int ourMIDIchannel                      = 1;
 
 
@@ -60,7 +59,7 @@ static void midiInputCallback (const MIDIPacketList *pktlist, void *procRef, voi
                 int origvelo =  packet->data[i+2];
 
                 int mapped_note = mapping[orignote]
-                                + 12*((orignote>49) ? right_bank_offset_octaves : left_bank_offset_octaves)
+                                + ((orignote>49) ? 12*interbank_offset_octaves : 0)
                                 + transpose_semitones;
 
                 int velocity = origvelo ? ((origvelo+sensitivity_correction<127) ? (origvelo+sensitivity_correction) : 127) : 0;
@@ -79,7 +78,7 @@ static void midiInputCallback (const MIDIPacketList *pktlist, void *procRef, voi
 
 
 void usage(const char *progname) {
-    NSLog(@"Usage:\n\t%s [-d midi_input_device_name] [-i midi_instrument[:midi_channel[:msb_bank[:lsb_bank]]]] [-l left_bank_offset_octaves] [-r right_bank_offset_octaves] [-s sensitivity_correction] [-t transpose_semitones] [{-b | -c | -j | -w}]", progname);
+    NSLog(@"Usage:\n\t%s [-d midi_input_device_name] [-i midi_instrument[:midi_channel[:msb_bank[:lsb_bank]]]] [-o interbank_offset_octaves] [-s sensitivity_correction] [-t transpose_semitones] [{-b | -c | -j | -w}]", progname);
     exit(0);
 }
 
@@ -100,7 +99,7 @@ int main(int argc, char *argv[]) {
     create_selfless_mapping(mapping, 81, -7, -3);   // sonome ("harmonic table") mapping (default)
         
     int ch;
-    while ((ch = getopt(argc, argv, "bcjwd:i:l:r:s:t:")) != -1) {
+    while ((ch = getopt(argc, argv, "bcjwd:i:o:s:t:")) != -1) {
         switch (ch) {
             case 'b':
                 create_selfless_mapping(mapping, 36, +1, +3);   // B-griff accordion mapping (from NW)
@@ -122,11 +121,8 @@ int main(int argc, char *argv[]) {
                 // set channel to 10 for percussion
                 sscanf(optarg, "%d:%d:%d:%d", &ourMIDIinstrument, &ourMIDIchannel, &ourMSBbank, &ourLSBbank);
                 break;
-            case 'l':
-                left_bank_offset_octaves = atoi(optarg);
-                break;
-            case 'r':
-                right_bank_offset_octaves = atoi(optarg);
+            case 'o':
+                interbank_offset_octaves = atoi(optarg);
                 break;
             case 's':
                 sensitivity_correction = atoi(optarg);
