@@ -11,7 +11,7 @@ where the two "banks" of notes are indistinguishable by external hardware/softwa
 
 Selfless mode allows us to get much more out of this toy:
 
-1. You can stay with "Sonome" keyboard layout but transpose one bank a few octaves apart from the other one -
+1. You can stay with "Sonome" keyboard layout but transpose one bank a few octaves apart from the other one (-o),
     which extends the overall range and it makes more sense to play with two hands (sacrificing the "isomorphic" property).
 
 2. Or you can completely remap the device to any other isomorphic hexagonal layout such as
