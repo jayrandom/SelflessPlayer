@@ -21,7 +21,8 @@ Selfless mode allows us to get much more out of this toy:
     * C-griff (French/Italian) chromatic button accordion (-c)
     etc.
 
-The MIDI instrument:channel:bank to be played can also be set from the command line (-i).
+The MIDI instrument:channel:msb_bank:lsb_bank to be played can also be set from the command line (-i).
+If you want two banks to play different instruments, use the same configuration format for the right bank (-y).
 
 It should now compile both on Snow Leopard (Mac OSX 10.6) and Leopard (Mac OSX 10.5).
 If it complains please make sure you have commented/uncommented the right line in Makefile.
