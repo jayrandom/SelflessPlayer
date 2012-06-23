@@ -22,10 +22,11 @@ enum {
 
 AudioUnit synthUnit;    // have to make it global and reachable by the callback routine
 unsigned char mapping[99];
-int sensitivity_correction              = 0;
+int sensitivity_correction              = 40;
 int transpose_semitones                 = 0;
 int left_bank_offset_octaves            = 0;
 int right_bank_offset_octaves           = 0;
+int ourMIDIchannel                      = 1;
 
 
     // creates any regular hexagonal mapping for AXIS-49 selfless mode
@@ -52,7 +53,9 @@ static void midiInputCallback (const MIDIPacketList *pktlist, void *procRef, voi
     for (int j=0; j < pktlist->numPackets; j++) {
         for (int i=0; i < packet->length; i+=3) {
             int cmdchannel = packet->data[i];
-            if( (cmdchannel == kMidiMessage_NoteOff) || (cmdchannel == kMidiMessage_NoteOn)) {
+            int cmd         = cmdchannel & 0xf0;
+            int origchannel = cmdchannel & 0x0f;
+            if( (cmd == kMidiMessage_NoteOff) || (cmd == kMidiMessage_NoteOn)) {
                 int orignote =  packet->data[i+1];
                 int origvelo =  packet->data[i+2];
 
@@ -62,11 +65,11 @@ static void midiInputCallback (const MIDIPacketList *pktlist, void *procRef, voi
 
                 int velocity = origvelo ? ((origvelo+sensitivity_correction<127) ? (origvelo+sensitivity_correction) : 127) : 0;
 
-                MusicDeviceMIDIEvent(synthUnit, cmdchannel, mapped_note, velocity, 0);
+                MusicDeviceMIDIEvent(synthUnit, cmd | (ourMIDIchannel-1), mapped_note, velocity, 0);
 
-                NSLog(@"midiInput\t\t[channel=%2d]\tcmd=%3s\tnote=%3d\tvelocity=%3d", cmdchannel&15, (cmdchannel&16)?"On":"Off", mapped_note, velocity);
+                NSLog(@"midiInput\t\t[channel=%2d]\tcmd=%3s\tnote=%3d\tvelocity=%3d", ourMIDIchannel, (cmdchannel&16)?"On":"Off", mapped_note, velocity);
             } else {
-                NSLog(@"midiInput\t\t[channel=%2d]\tcmdcode=0x%02x", cmdchannel&15, cmdchannel>>4);
+                NSLog(@"midiInput\t\t[channel=%2d]\tcmdcode=0x%1x", ourMIDIchannel, cmd>>4);
             }
         }
 
@@ -76,7 +79,7 @@ static void midiInputCallback (const MIDIPacketList *pktlist, void *procRef, voi
 
 
 void usage(const char *progname) {
-    NSLog(@"Usage:\n\t%s [-d midi_input_device_name] [-i midi_instrument_number] [-l left_bank_offset_octaves] [-r right_bank_offset_octaves] [-s sensitivity_correction] [-t transpose_semitones] [{-b | -c | -j | -w}]", progname);
+    NSLog(@"Usage:\n\t%s [-d midi_input_device_name] [-i midi_instrument[:midi_channel[:msb_bank[:lsb_bank]]]] [-l left_bank_offset_octaves] [-r right_bank_offset_octaves] [-s sensitivity_correction] [-t transpose_semitones] [{-b | -c | -j | -w}]", progname);
     exit(0);
 }
 
@@ -88,9 +91,11 @@ int main(int argc, char *argv[]) {
     MIDIPortRef inputPort;
     MIDIObjectRef endPoint;
     AUGraph graph = 0;
-    int midiChannelInUse = 0;
-    int midiInstrumentToPlay = 1;
     char *device_name = (char *)"AXIS-49 2A";
+
+    int ourMIDIinstrument   = 1;
+    int ourMSBbank          = 0;
+    int ourLSBbank          = 0;
 
     create_selfless_mapping(mapping, 81, -7, -3);   // sonome ("harmonic table") mapping (default)
         
@@ -113,7 +118,9 @@ int main(int argc, char *argv[]) {
                 device_name = optarg;
                 break;
             case 'i':
-                midiInstrumentToPlay = atoi(optarg)-1;
+                // instrument and channel are base-1, msb_bank and lsb_bank are base-0
+                // set channel to 10 for percussion
+                sscanf(optarg, "%d:%d:%d:%d", &ourMIDIinstrument, &ourMIDIchannel, &ourMSBbank, &ourLSBbank);
                 break;
             case 'l':
                 left_bank_offset_octaves = atoi(optarg);
@@ -146,13 +153,17 @@ int main(int argc, char *argv[]) {
     require_noerr (result = CreateAUGraph (graph, synthUnit), home);
             //set our bank
     require_noerr (result = MusicDeviceMIDIEvent(synthUnit, 
-                                                kMidiMessage_ControlChange | midiChannelInUse, 
-                                                kMidiMessage_BankMSBControl, 0,
+                                                kMidiMessage_ControlChange | (ourMIDIchannel-1), 
+                                                kMidiMessage_BankMSBControl | ourMSBbank, 0,
+                                                0/*sample offset*/), home);
+    require_noerr (result = MusicDeviceMIDIEvent(synthUnit, 
+                                                kMidiMessage_ControlChange | (ourMIDIchannel-1), 
+                                                kMidiMessage_BankLSBControl | ourLSBbank, 0,
                                                 0/*sample offset*/), home);
             // set the instrument
     require_noerr (result = MusicDeviceMIDIEvent(synthUnit,
-                                                kMidiMessage_ProgramChange | midiChannelInUse, 
-                                                midiInstrumentToPlay /* instrument */, 0,
+                                                kMidiMessage_ProgramChange | (ourMIDIchannel-1), 
+                                                (ourMIDIinstrument-1), 0,
                                                 0/*sample offset*/), home);
 
     NSLog(@"Ready to play");
