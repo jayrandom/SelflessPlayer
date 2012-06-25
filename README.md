@@ -19,7 +19,8 @@ Selfless mode allows us to get much more out of this toy:
     * Janko piano (-j)
     * B-griff (Russian bayan) chromatic button accordion (-b)
     * C-griff (French/Italian) chromatic button accordion (-c)
-    etc.
+    * An arbitrary isomorphic hexabonal layout defined by 3 parameters (-a d:e:f)
+See bottom of this document for complete layout maps and their "formula" relative to any given note X.
 
 The MIDI instrument:channel:msb_bank:lsb_bank to be played can also be set from the command line (-i).
 If you want two banks to play different instruments, use the same configuration format for the right bank (-y).
