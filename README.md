@@ -20,13 +20,14 @@ Selfless mode allows us to get much more out of this toy:
     * B-griff (Russian bayan) chromatic button accordion (-b)
     * C-griff (French/Italian) chromatic button accordion (-c)
     * An arbitrary isomorphic hexabonal layout defined by 3 parameters (-a d:e:f)
-See bottom of this document for complete layout maps and their "formula" relative to any given note X.
+
+See bottom of this document for layout maps and their "formula" relative to any given note X.
 
 The MIDI instrument:channel:msb_bank:lsb_bank to be played can also be set from the command line (-i).
 If you want two banks to play different instruments, use the same configuration format for the right bank (-y).
 
-It should now compile both on Snow Leopard (Mac OSX 10.6) and Leopard (Mac OSX 10.5).
-If it complains please make sure you have commented/uncommented the right line in Makefile.
+The code has been compiled and tested in Leopard (MacOSX 10.5), Snow Leopard (MacOSX 10.6) and Lion (MacOSX 10.7).
+Please make sure you have commented/uncommented the right line in Makefile.
 
 Enjoy!
 
