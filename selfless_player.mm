@@ -37,9 +37,9 @@ int interbank_offset_octaves            = 0;
 
 
     // creates any regular hexagonal mapping for AXIS-49 selfless mode
-void create_selfless_mapping(unsigned char *map, char start_note, int south_offset, int southeast_offset) {
+void create_selfless_mapping(unsigned char *map, int south_offset, int southeast_offset, unsigned start_note) {
 
-    map[1] = start_note;
+    map[1] = (unsigned char)start_note;
     for(unsigned selfless_idx=2;selfless_idx<=98;selfless_idx++) {
         if( (selfless_idx-1) % 7 == 0) {    // top of a row
             unsigned column = (selfless_idx-1) / 7;
@@ -88,7 +88,7 @@ static void midiInputCallback (const MIDIPacketList *pktlist, void *procRef, voi
 
 
 void usage(const char *progname) {
-    NSLog(@"Usage:\n\t%s [options]\n\nthe following options are recognized:\n\n\t{-b | -c | -j | -w}\t\t\t\t\t\tmutually exclusive layout option\n\t-d midi_input_device_name\t\t\t\t\t'AXIS-49 2A' by default\n\t-i midi_instrument[:midi_channel[:msb_bank[:lsb_bank]]]\t\tdefault instrument\n\t-y midi_instrument[:midi_channel[:msb_bank[:lsb_bank]]]\t\tright bank's instrument if you want a different one\n\t-o interbank_offset_octaves\t\t\t\t\t0 by default, lets you split the banks' ranges apart\n\t-s sensitivity_correction\t\t\t\t\t40 by default, the whole point of writing this program :)\n\t-t transpose_semitones\t\t\t\t\t\t0 by default", progname);
+    NSLog(@"Usage:\n\t%s [options]\n\nthe following options are recognized:\n\n\t{-b | -c | -j | -w}\t\t\t\t\t\tmutually exclusive layout option\n\t-a south_offset:southeast_offset:start_note\t\t\tset an arbitrary isomorphic layout based on two offsets and start_note\n\t-d midi_input_device_name\t\t\t\t\t'AXIS-49 2A' by default\n\t-i midi_instrument[:midi_channel[:msb_bank[:lsb_bank]]]\t\tdefault instrument\n\t-y midi_instrument[:midi_channel[:msb_bank[:lsb_bank]]]\t\tright bank's instrument if you want a different one\n\t-o interbank_offset_octaves\t\t\t\t\t0 by default, lets you split the banks' ranges apart\n\t-s sensitivity_correction\t\t\t\t\t40 by default, the whole point of writing this program :)\n\t-t transpose_semitones\t\t\t\t\t\t0 by default", progname);
     exit(0);
 }
 
@@ -102,22 +102,41 @@ int main(int argc, char *argv[]) {
     AUGraph graph = 0;
     char *device_name = (char *)"AXIS-49 2A";
 
-    create_selfless_mapping(mapping, 81, -7, -3);   // sonome ("harmonic table") mapping (default)
-        
+        // mapping parameters default to Sonome ("harmonic table") layout
+    int south_offset    = -7;
+    int southeast_offset= -3;
+    unsigned start_note = 81;
+
     int ch;
-    while ((ch = getopt(argc, argv, "bcjwd:i:y:o:s:t:")) != -1) {
+    while ((ch = getopt(argc, argv, "a:bcjwd:i:y:o:s:t:")) != -1) {
         switch (ch) {
+            case 'a':
+                    // arbitrary isomorphic hexagonal layout:
+                sscanf(optarg, "%d:%d:%u", &south_offset, &southeast_offset, &start_note);
+                break;
             case 'b':
-                create_selfless_mapping(mapping, 36, +1, +3);   // B-griff accordion mapping (from NW)
+                    // B-griff accordion mapping (from NW):
+                south_offset    = +1;
+                southeast_offset= +3;
+                start_note      = 36;
                 break;
             case 'c':
-                create_selfless_mapping(mapping, 32, +2, +3);   // C-griff accordion mapping (from NW)
+                    // C-griff accordion mapping (from NW):
+                south_offset    = +2;
+                southeast_offset= +3;
+                start_note      = 32;
                 break;
             case 'j':
-                create_selfless_mapping(mapping, 41, -1, +1);   // Janko piano mapping (from SW)
+                    // Janko piano mapping (from SW):
+                south_offset    = -1;
+                southeast_offset= +1;
+                start_note      = 41;
                 break;
             case 'w':
-                create_selfless_mapping(mapping, 32, +2, +7);   // Wicki-Hayden concertina mapping (from NW)
+                    // Wicki-Hayden concertina mapping (from NW):
+                south_offset    = +2;
+                southeast_offset= +7;
+                start_note      = 32;
                 break;
             case 'd':
                 device_name = optarg;
@@ -146,6 +165,8 @@ int main(int argc, char *argv[]) {
                 usage(argv[0]);
             }
      }
+
+    create_selfless_mapping(mapping, south_offset, southeast_offset, start_note);
 
         // Setting up MIDI part (with the callback)
     require_noerr( result = MIDIClientCreate(CFSTR("MIDI client"), NULL, NULL, &midiClient), home);
